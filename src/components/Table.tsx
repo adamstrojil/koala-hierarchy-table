@@ -1,10 +1,9 @@
 import { Fragment, useState } from "react"
-import { parseJsonDataToTableData } from "../App"
 
 type Cell = string
-type Row = { data: Array<Cell>; children: TableData }
-type Headers = Array<Cell>
-type Rows = Array<Row>
+type Row = { data: Array<Cell>; children: TableData | null; rowId: string }
+export type Headers = Array<Cell>
+export type Rows = Array<Row>
 
 export type TableData = {
   headers: Headers
@@ -14,10 +13,10 @@ export type TableData = {
 type Props = {
   data: TableData
   level?: number
-}
-
-function isObjectEmpty(obj: any) {
-  return Object.entries(obj).length === 0
+  rowActions?: {
+    headerText: string
+    buttons: Array<{ text: string; onClick: (rowId: string) => void }>
+  }
 }
 
 const INDEX_OF_ID_IN_ROW_CELLS = 0
@@ -29,8 +28,16 @@ const levelToBackgroundColorMap = {
   3: "#EEE",
 }
 
-export const Table = ({ data, level = 0 }: Props) => {
+export const Table = ({ data, level = 0, rowActions }: Props) => {
   const [expadendRowIDs, setExpandedRowIDs] = useState<Array<string>>([])
+
+  if (data.rows.length === 0 && level === 0) {
+    return "No data to display..."
+  }
+
+  if (data.rows.length === 0) {
+    return null
+  }
 
   return (
     <table
@@ -48,6 +55,7 @@ export const Table = ({ data, level = 0 }: Props) => {
           }}
         >
           <th>expand</th>
+          <th>{rowActions?.headerText}</th>
           {data.headers.map((header: any, index: any) => (
             <th style={{ padding: "8px 8px" }} key={index}>
               {header}
@@ -64,7 +72,7 @@ export const Table = ({ data, level = 0 }: Props) => {
               }}
             >
               <td>
-                {!isObjectEmpty(row.children) ? (
+                {row.children ? (
                   expadendRowIDs.includes(
                     row.data[INDEX_OF_ID_IN_ROW_CELLS],
                   ) ? (
@@ -97,6 +105,13 @@ export const Table = ({ data, level = 0 }: Props) => {
                   ""
                 )}
               </td>
+              <td>
+                {rowActions?.buttons.map(({ text, onClick }) => (
+                  <button key={text} onClick={() => onClick(row.rowId)}>
+                    {text}
+                  </button>
+                ))}
+              </td>
               {row.data.map((cell: any, cellIndex: any) => (
                 <td key={cellIndex}>{cell}</td>
               ))}
@@ -104,14 +119,13 @@ export const Table = ({ data, level = 0 }: Props) => {
 
             <tr>
               <td colSpan={data.headers.length + 1}>
-                {/* Extra cell that spans all columns for sub-table*/}
-                {!isObjectEmpty(row.children) &&
+                {/* Extra cell that spans all columns for nested child table*/}
+                {row.children &&
                 expadendRowIDs.includes(row.data[INDEX_OF_ID_IN_ROW_CELLS]) ? (
                   <Table
-                    data={parseJsonDataToTableData(
-                      row.children[Object.keys(row.children)[0]].records,
-                    )}
+                    data={row.children}
                     level={level + 1}
+                    rowActions={rowActions}
                   />
                 ) : null}
               </td>

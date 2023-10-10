@@ -1,19 +1,48 @@
-import logo from "./logo.svg"
-import { Counter } from "./features/counter/Counter"
+import { useEffect, useState } from "react"
 
 import "./App.css"
 import { Table, TableData } from "./components/Table"
-import { useState, useEffect } from "react"
+import { useAppDispatch, useAppSelector } from "./app/hooks"
+import {
+  deleteRow,
+  fetchDataAsync,
+  selectStatus,
+  selectTableData,
+} from "./features/hierarchyTable/hierarchyTableSlice"
+import { Counter } from "./features/counter/Counter"
 
+export type Database = Array<DatabaseNode>
+type DatabaseNode = {
+  data: Data
+  children: Children
+}
+type Data = { ID: string; [key: string]: string }
+type EmptyObject = Record<string, never>
+type Children =
+  | EmptyObject
+  | {
+      [key: string]: {
+        // "has_nemesis", "has_secrete"
+        records: Array<DatabaseNode>
+      }
+    }
 
+function hasChildren(obj: Children | null) {
+  return !!obj && Object.entries(obj).length !== 0
+}
 
-export const parseJsonDataToTableData = (jsonData: any): TableData => {
+export const transformJsonDataToTableData = (jsonData: Database): TableData => {
   const parsedData = {
-    headers: [...Object.keys(jsonData[0].data)],
+    headers: [...Object.keys(jsonData[0].data)], // Take the keys from first item and use them as table headers for everything (assumes all the items have same properties)
     rows: [
-      ...jsonData.map((record: any) => ({
-        data: Object.values(record.data),
-        children: record.children,
+      ...jsonData.map((node: DatabaseNode) => ({
+        data: Object.values(node.data),
+        rowId: crypto.randomUUID(),
+        children: hasChildren(node.children)
+          ? transformJsonDataToTableData(
+              node.children[Object.keys(node.children)[0]].records,
+            )
+          : null,
       })),
     ],
   }
@@ -22,95 +51,56 @@ export const parseJsonDataToTableData = (jsonData: any): TableData => {
 }
 
 function App() {
-  const [jsonData, setJsonData] = useState<any>(null)
-  const [tableData, setTableData] = useState<TableData>({
-    headers: [],
-    rows: [],
-  })
+  const dispatch = useAppDispatch()
+  const tableData = useAppSelector(selectTableData)
+  const status = useAppSelector(selectStatus)
+  // const [jsonData, setJsonData] = useState<any>(null)
+  // const [tableData, setTableData] = useState<TableData>({
+  //   headers: [],
+  //   rows: [],
+  // })
 
   useEffect(() => {
-    const jsonFilePath = "src/data/example-data.json"
+    const JSON_FILE_PATH = "src/data/example-data.json"
+    dispatch(fetchDataAsync(JSON_FILE_PATH))
 
-    fetch(jsonFilePath)
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Network response was not ok")
-        }
-        return response.json()
-      })
-      .then((data) => {
-        setJsonData(data)
-      })
-      .catch((error) => {
-        console.error("Error reading JSON file:", error)
-      })
-  }, [])
+    // fetch(JSON_FILE_PATH)
+    //   .then((response) => {
+    //     //could check for (!response.ok) here as well
+    //     return response.json()
+    //   })
+    //   .then((data) => {
+    //     setJsonData(data)
+    //   })
+    //   .catch((error) => {
+    //     console.error("Error reading JSON file:", error)
+    //   })
+  }, [dispatch])
 
-  useEffect(() => {
-    if (jsonData) {
-      console.log("jsonData: ", jsonData)
-
-      setTableData(parseJsonDataToTableData(jsonData))
-    }
-  }, [jsonData])
+  // useEffect(() => {
+  //   if (jsonData) {
+  //     setTableData(transformJsonDataToTableData(jsonData))
+  //   }
+  // }, [jsonData])
 
   return (
     <div>
-      {/* {console.log("tableData: ", tableData)} */}
-      <h1>Table Example</h1>
-      <Table data={tableData} />
+      <h1>{status === "loading" ? "Loading..." : "Table"}</h1>
+      {/* <Counter /> */}
+      <Table
+        data={tableData}
+        rowActions={{
+          headerText: "Actions",
+          buttons: [
+            {
+              text: "remove",
+              onClick: (rowId) => dispatch(deleteRow({ rowId })),
+            },
+          ],
+        }}
+      />
     </div>
   )
-
-  // return (
-  //   <div className="App">
-  //     <header className="App-header">
-  //       <img src={logo} className="App-logo" alt="logo" />
-  //       <Counter />
-  //       <p>
-  //         Edit <code>src/App.tsx</code> and save to reload.
-  //       </p>
-  //       <span>
-  //         <span>Learn </span>
-  //         <a
-  //           className="App-link"
-  //           href="https://reactjs.org/"
-  //           target="_blank"
-  //           rel="noopener noreferrer"
-  //         >
-  //           React
-  //         </a>
-  //         <span>, </span>
-  //         <a
-  //           className="App-link"
-  //           href="https://redux.js.org/"
-  //           target="_blank"
-  //           rel="noopener noreferrer"
-  //         >
-  //           Redux
-  //         </a>
-  //         <span>, </span>
-  //         <a
-  //           className="App-link"
-  //           href="https://redux-toolkit.js.org/"
-  //           target="_blank"
-  //           rel="noopener noreferrer"
-  //         >
-  //           Redux Toolkit
-  //         </a>
-  //         ,<span> and </span>
-  //         <a
-  //           className="App-link"
-  //           href="https://react-redux.js.org/"
-  //           target="_blank"
-  //           rel="noopener noreferrer"
-  //         >
-  //           React Redux
-  //         </a>
-  //       </span>
-  //     </header>
-  //   </div>
-  // )
 }
 
 export default App
