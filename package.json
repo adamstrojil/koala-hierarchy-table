@@ -1,5 +1,6 @@
 {
-  "name": "vite-template-redux",
+  "name": "koala-hierarchy-table",
+  "homepage": "https://adamstrojil.github.io/koala-hierarchy-table/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -11,10 +12,12 @@
     "test": "vitest",
     "format": "prettier --write .",
     "lint": "eslint .",
-    "type-check": "tsc"
+    "type-check": "tsc",
+    "deploy": "gh-pages -d build"
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.8.1",
+    "gh-pages": "^6.0.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-icons": "^4.11.0",
