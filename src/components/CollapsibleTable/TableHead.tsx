@@ -10,7 +10,7 @@ type Props = {
 const variantToColorMap: { [key in ColorVariant]: string } = {
   light: "#75e4b3",
   medium: "#55DBCB",
-  dark: "#3fcbdb", //"#39A2AE",
+  dark: "#3fcbdb",
 }
 
 export function TableHead({ colorVariant, cells }: Props) {

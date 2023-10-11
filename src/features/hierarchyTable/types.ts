@@ -1,7 +1,6 @@
 type Data = { ID: string; [key: string]: string }
 type EmptyObject = Record<string, never>
 
-export type JSONDatabase = Array<JSONDatabaseNode>
 export type JSONDatabaseNode = {
   data: Data
   children: Children
@@ -14,3 +13,5 @@ export type Children =
         records: Array<JSONDatabaseNode>
       }
     }
+
+export type JSONDatabase = Array<JSONDatabaseNode>

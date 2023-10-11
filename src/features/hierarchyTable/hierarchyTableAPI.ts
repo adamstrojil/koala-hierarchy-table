@@ -16,6 +16,13 @@ export function fetchDataFromFakeAPI(filePath: string): Promise<JSONDatabase> {
 export async function fetchDataFromJSON(
   filePath: string,
 ): Promise<JSONDatabase> {
-  const response = await fetch(filePath)
-  return await response.json()
+  try {
+    const response = await fetch(filePath)
+    if (!response.ok) {
+      throw new Error(`Request failed with status: ${response.status}`)
+    }
+    return await response.json()
+  } catch (error) {
+    throw error
+  }
 }

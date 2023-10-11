@@ -1,13 +1,10 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit"
+
 import { RootState } from "../../app/store"
 import { Optional } from "../../app/types"
-import { TableData } from "../../components/Table/types"
+import { TableData } from "../../components/CollapsibleTable/types"
 import { fetchDataFromJSON } from "../hierarchyTable/hierarchyTableAPI"
-import {
-  getDataWithoutItemsWithEmptyRows,
-  getRowsWithoutRemoved,
-  transformJsonDataToTableData,
-} from "./utils"
+import { getDataWithoutRemovedRow, transformJsonDataToTableData } from "./utils"
 
 export type HierarchyTableState = {
   data: Optional<TableData>
@@ -15,7 +12,7 @@ export type HierarchyTableState = {
 }
 
 const initialState: HierarchyTableState = {
-  data: null, //Note: With more time, I'd consider {headers:[], rows:[]} as initial state
+  data: null, //Note: With more time, I'd consider if {headers:[], rows:[]} is better default state
   status: "idle",
 }
 
@@ -32,11 +29,7 @@ export const hierarchyTableSlice = createSlice({
   reducers: {
     deleteRow: (state, action: PayloadAction<{ rowId: string }>) => {
       if (state.data) {
-        state.data.rows = getRowsWithoutRemoved(
-          state.data.rows,
-          action.payload.rowId,
-        )
-        state.data = getDataWithoutItemsWithEmptyRows(state.data)
+        state.data = getDataWithoutRemovedRow(state.data, action.payload.rowId)
       }
     },
   },

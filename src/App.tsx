@@ -3,15 +3,14 @@ import { ImCross } from "react-icons/im"
 
 import "./App.css"
 import { useAppDispatch, useAppSelector } from "./app/hooks"
-import { Table } from "./components/Table/Table"
+import { CollapsibleTable } from "./components/CollapsibleTable"
+import { JSON_FILE_PATH } from "./config"
 import {
   deleteRow,
   fetchData,
   selectStatus,
   selectTableData,
 } from "./features/hierarchyTable/hierarchyTableSlice"
-
-const JSON_FILE_PATH = "src/data/example-data.json"
 
 export function App() {
   const dispatch = useAppDispatch()
@@ -37,15 +36,15 @@ export function App() {
     <>
       <h1>Hieararchy table</h1>
       {tableData ? (
-        <Table
+        <CollapsibleTable
           data={tableData}
           rowActions={{
             headerText: "Actions",
             buttons: [
               {
-                accessibilityLabel: "Delete row",
                 color: "#dd0000",
                 content: <ImCross />,
+                accessibilityLabel: "Delete row",
                 onClick: (rowId) => dispatch(deleteRow({ rowId })),
               },
             ],

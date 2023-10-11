@@ -1,30 +1,24 @@
-import { Fragment, ReactNode, useState } from "react"
-import { MdOutlineChevronRight, MdOutlineExpandMore } from "react-icons/md"
+import { Fragment, useState } from "react"
 
+import { ToggleButton } from "./ToggleButton"
+import { ActionButtons } from "./ActionButtons"
 import { TableHead } from "./TableHead"
-import { Cell, TableData } from "./types"
+import { Cell, RowActions, RowId, TableData } from "./types"
 import { getHeaderVariantByLevel } from "./utils"
 
 type Props = {
   data: TableData
   level?: number
-  rowActions?: {
-    headerText: string
-    buttons: Array<{
-      color: string
-      content: ReactNode
-      onClick: (rowId: string) => void
-      accessibilityLabel?: string
-    }>
-  }
+  rowActions?: RowActions
 }
+const TOGGLE_COLUMN_LABEL = ""
 
-export const Table = ({ data, level = 0, rowActions }: Props) => {
-  const [expadendRowIds, setExpandedRowIds] = useState<Array<string>>([])
+export const CollapsibleTable = ({ data, level = 0, rowActions }: Props) => {
+  const [expadendRowIds, setExpandedRowIds] = useState<Array<RowId>>([])
 
   const hasRowActions = !!rowActions
   const headerCells: Array<Cell> = [
-    "", //Note: Expand/collapse column label would go here
+    TOGGLE_COLUMN_LABEL,
     ...data.headers,
     ...(hasRowActions ? [rowActions.headerText] : []),
   ]
@@ -46,8 +40,8 @@ export const Table = ({ data, level = 0, rowActions }: Props) => {
               <tr>
                 <td>
                   {hasChildren && (
-                    <button
-                      aria-label={isChildrenExpanded ? "Collapse" : "Expand"}
+                    <ToggleButton
+                      isExpanded={isChildrenExpanded}
                       onClick={() => {
                         setExpandedRowIds((currentlyExpanded) =>
                           isChildrenExpanded
@@ -58,15 +52,7 @@ export const Table = ({ data, level = 0, rowActions }: Props) => {
                             : [rowId, ...currentlyExpanded],
                         )
                       }}
-                    >
-                      <span>
-                        {isChildrenExpanded ? (
-                          <MdOutlineExpandMore />
-                        ) : (
-                          <MdOutlineChevronRight />
-                        )}
-                      </span>
-                    </button>
+                    />
                   )}
                 </td>
                 {rowData.map((cell) => (
@@ -74,27 +60,16 @@ export const Table = ({ data, level = 0, rowActions }: Props) => {
                 ))}
                 {hasRowActions && (
                   <td>
-                    {rowActions.buttons.map(
-                      ({ content, onClick, color, accessibilityLabel }) => (
-                        <button
-                          aria-label={accessibilityLabel}
-                          style={{ color }}
-                          key={crypto.randomUUID()}
-                          onClick={() => onClick(rowId)} //Note: could add some confirmation, window.confirm or smth
-                        >
-                          <span>{content}</span>
-                        </button>
-                      ),
-                    )}
+                    <ActionButtons buttons={rowActions.buttons} rowId={rowId} />
                   </td>
                 )}
               </tr>
               {isChildrenExpanded && (
-                //Note: I guess the nested table shouldn't be in a new row inside the parent table, but instead should exist in a completely separate table element.
+                //Note: I guess the nested table shouldn't be in a new row inside the parent table, but instead should exist in a completely separate table element elsewhere.
                 //      However, HTML validator doesn't complain about it, so unless someone does, I'll leave it like this.
                 <tr>
                   <td colSpan={headerCells.length} className="nestedTable">
-                    <Table
+                    <CollapsibleTable
                       level={level + 1}
                       data={children}
                       rowActions={rowActions}
