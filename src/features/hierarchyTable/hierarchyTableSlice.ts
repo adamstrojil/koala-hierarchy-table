@@ -19,7 +19,7 @@ const initialState: HierarchyTableState = {
 export const fetchData = createAsyncThunk(
   "hierarchyTable/fetchData",
   async (url: string) => {
-    return await fetchDataFromJSON(url) //Note: try fetchDataFromFakeAPI(url) to see the loading better
+    return await fetchDataFromJSON(url) //Note: or try fetchDataFromFakeAPI(url) to see the loading better
   },
 )
 
@@ -28,9 +28,7 @@ export const hierarchyTableSlice = createSlice({
   initialState,
   reducers: {
     deleteRow: (state, action: PayloadAction<{ rowId: string }>) => {
-      if (state.data) {
-        state.data = getDataWithoutRemovedRow(state.data, action.payload.rowId)
-      }
+      state.data = getDataWithoutRemovedRow(state.data, action.payload.rowId)
     },
   },
   extraReducers: (builder) => {
