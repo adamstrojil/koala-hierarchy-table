@@ -34,7 +34,7 @@ export function App() {
 
   return (
     <>
-      <h1>Hieararchy table</h1>
+      <h1>Hierarchy table</h1>
       {tableData ? (
         <CollapsibleTable
           data={tableData}
