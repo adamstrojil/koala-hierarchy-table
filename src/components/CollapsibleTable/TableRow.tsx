@@ -4,7 +4,6 @@ import { Cell, RowActions, RowId } from "./types"
 
 type TableRowProps = {
   id: RowId
-  isEven: boolean
   parentId: RowId
   data: Array<Cell>
   hasChildren: boolean
@@ -16,7 +15,6 @@ type TableRowProps = {
 export function TableRow({
   id,
   parentId,
-  isEven,
   data,
   hasChildren,
   rowActions,
@@ -24,7 +22,7 @@ export function TableRow({
   onToggleChildrenVisible,
 }: TableRowProps) {
   return (
-    <tr className={isEven ? "darker" : ""}>
+    <tr>
       <td>
         {hasChildren && (
           <ToggleButton
@@ -34,7 +32,7 @@ export function TableRow({
         )}
       </td>
       {data.map((cell) => (
-        <td>{cell}</td>
+        <td key={crypto.randomUUID()}>{cell}</td>
       ))}
       {!!rowActions && (
         <td>
