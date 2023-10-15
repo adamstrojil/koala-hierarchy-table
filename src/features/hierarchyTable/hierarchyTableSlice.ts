@@ -1,18 +1,21 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit"
 
 import { RootState } from "../../app/store"
-import { Optional } from "../../app/types"
-import { TableData } from "../../components/CollapsibleTable/types"
+import { RowId, TableFlatData } from "../../components/CollapsibleTable/types"
 import { fetchDataFromJSON } from "../hierarchyTable/hierarchyTableAPI"
 import { getDataWithoutRemovedRow, transformJsonDataToTableData } from "./utils"
+import { HierarchyTableState } from "./types"
 
-export type HierarchyTableState = {
-  data: Optional<TableData>
-  status: "idle" | "loading" | "failed"
+const EMPTY_FLAT_TABLE_DATA: TableFlatData = {
+  0: {
+    id: "0",
+    data: [],
+    childIds: [],
+  },
 }
 
 const initialState: HierarchyTableState = {
-  data: null, //Note: With more time, I'd consider if {headers:[], rows:[]} is better default state
+  data: EMPTY_FLAT_TABLE_DATA,
   status: "idle",
 }
 
@@ -27,8 +30,18 @@ export const hierarchyTableSlice = createSlice({
   name: "hierarchyTable",
   initialState,
   reducers: {
-    deleteRow: (state, action: PayloadAction<{ rowId: string }>) => {
-      state.data = getDataWithoutRemovedRow(state.data, action.payload.rowId)
+    deleteFlatRow: (
+      state,
+      action: PayloadAction<{
+        rowId: RowId
+        parentRowId: RowId
+      }>,
+    ) => {
+      state.data = getDataWithoutRemovedRow(
+        state.data,
+        action.payload.rowId,
+        action.payload.parentRowId,
+      )
     },
   },
   extraReducers: (builder) => {
@@ -46,7 +59,7 @@ export const hierarchyTableSlice = createSlice({
   },
 })
 
-export const { deleteRow } = hierarchyTableSlice.actions
+export const { deleteFlatRow } = hierarchyTableSlice.actions
 
 export const selectStatus = (state: RootState) => state.hierarchyTable.status
 export const selectTableData = (state: RootState) => state.hierarchyTable.data

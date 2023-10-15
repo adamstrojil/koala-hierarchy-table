@@ -6,7 +6,7 @@ import { useAppDispatch, useAppSelector } from "./app/hooks"
 import { CollapsibleTable } from "./components/CollapsibleTable"
 import { JSON_FILE_PATH } from "./config"
 import {
-  deleteRow,
+  deleteFlatRow,
   fetchData,
   selectStatus,
   selectTableData,
@@ -24,6 +24,9 @@ export function App() {
     [dispatch],
   )
 
+  const rootNode = tableData[Object.keys(tableData)[0]]
+  const hasDataToDisplay = !!rootNode.childIds.length
+
   if (status === "failed") {
     return "There has been an error."
   }
@@ -35,7 +38,7 @@ export function App() {
   return (
     <>
       <h1>Hierarchy table</h1>
-      {tableData ? (
+      {hasDataToDisplay ? (
         <CollapsibleTable
           data={tableData}
           rowActions={{
@@ -45,7 +48,9 @@ export function App() {
                 color: "#dd0000",
                 content: <ImCross />,
                 accessibilityLabel: "Delete row",
-                onClick: (rowId) => dispatch(deleteRow({ rowId })),
+                onClick: (rowId, parentRowId) => {
+                  dispatch(deleteFlatRow({ rowId, parentRowId }))
+                },
               },
             ],
           }}

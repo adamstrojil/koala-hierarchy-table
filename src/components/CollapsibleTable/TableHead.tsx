@@ -3,7 +3,7 @@ import { Cell } from "./types"
 export type ColorVariant = "light" | "medium" | "dark"
 
 type Props = {
-  colorVariant: ColorVariant
+  colorVariant?: ColorVariant
   cells: Array<Cell>
 }
 
@@ -13,16 +13,18 @@ const variantToColorMap: { [key in ColorVariant]: string } = {
   dark: "#3fcbdb",
 }
 
-export function TableHead({ colorVariant, cells }: Props) {
+export function TableHead({ colorVariant = "light", cells }: Props) {
+  const backgroundColor = variantToColorMap[colorVariant]
+
   return (
     <thead>
       <tr
         style={{
-          backgroundColor: variantToColorMap[colorVariant],
+          backgroundColor,
         }}
       >
         {cells.map((text) => (
-          <td key={crypto.randomUUID()}>{text}</td>
+          <th key={crypto.randomUUID()}>{text}</th>
         ))}
       </tr>
     </thead>

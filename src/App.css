@@ -9,7 +9,11 @@ table {
     drop-shadow(0 2px 2px rgb(0 0 0 / 0.06));
 }
 
-th,
+th {
+  font-weight: 600;
+  padding: 8px;
+}
+
 td {
   padding: 8px;
 }
@@ -22,7 +26,7 @@ tr {
   background-color: #fcfcfc;
 }
 
-tr:nth-child(even) {
+tbody:nth-child(odd)>tr{
   background-color: #f1f1f1;
 }
 

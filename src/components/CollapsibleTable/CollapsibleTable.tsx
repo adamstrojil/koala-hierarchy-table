@@ -1,86 +1,75 @@
-import { Fragment, useState } from "react"
+import { useState } from "react"
 
-import { ToggleButton } from "./ToggleButton"
-import { ActionButtons } from "./ActionButtons"
+import { TableFlatData, TableFlatDataNode, RowActions, RowIds } from "./types"
 import { TableHead } from "./TableHead"
-import { Cell, RowActions, RowId, TableData } from "./types"
-import { getHeaderVariantByLevel } from "./utils"
+import { TableRow } from "./TableRow"
 
 type Props = {
-  data: TableData
-  level?: number
+  data: TableFlatData
+  rootNode?: TableFlatDataNode
   rowActions?: RowActions
 }
+
 const TOGGLE_COLUMN_LABEL = ""
 
-export const CollapsibleTable = ({ data, level = 0, rowActions }: Props) => {
-  const [expadendRowIds, setExpandedRowIds] = useState<Array<RowId>>([])
-
+export const CollapsibleTable = ({
+  data,
+  rowActions,
+  rootNode = data[Object.keys(data)[0]],
+}: Props) => {
+  const [expadendRowIds, setExpandedRowIds] = useState<RowIds>([])
   const hasRowActions = !!rowActions
-  const headerCells: Array<Cell> = [
-    TOGGLE_COLUMN_LABEL,
-    ...data.headers,
-    ...(hasRowActions ? [rowActions.headerText] : []),
-  ]
 
   return (
     <table>
-      <TableHead
-        colorVariant={getHeaderVariantByLevel(level)}
-        cells={headerCells}
-      />
-      <tbody>
-        {data.rows.map(({ data: rowData, rowId, children }) => {
-          const hasChildren = !!children
-          const isChildrenExpanded =
-            hasChildren && expadendRowIds.includes(rowId)
-
-          return (
-            <Fragment key={rowId}>
-              <tr>
-                <td>
-                  {hasChildren && (
-                    <ToggleButton
-                      isExpanded={isChildrenExpanded}
-                      onClick={() => {
-                        setExpandedRowIds((currentlyExpanded) =>
-                          isChildrenExpanded
-                            ? currentlyExpanded.filter(
-                                //Note: could be optimised by not using filter and stopping after the id was found (and removed)
-                                (id) => id !== rowId,
-                              )
-                            : [rowId, ...currentlyExpanded],
-                        )
-                      }}
-                    />
-                  )}
-                </td>
-                {rowData.map((cell) => (
-                  <td key={crypto.randomUUID()}>{cell}</td>
-                ))}
-                {hasRowActions && (
-                  <td>
-                    <ActionButtons buttons={rowActions.buttons} rowId={rowId} />
-                  </td>
-                )}
-              </tr>
-              {isChildrenExpanded && (
-                //Note: I guess the nested table shouldn't be in a new row inside the parent table, but instead should exist in a completely separate table element elsewhere.
-                //      However, HTML validator doesn't complain about it, so unless someone does, I'll leave it like this.
-                <tr>
-                  <td colSpan={headerCells.length} className="nestedTable">
-                    <CollapsibleTable
-                      level={level + 1}
-                      data={children}
-                      rowActions={rowActions}
-                    />
-                  </td>
-                </tr>
-              )}
-            </Fragment>
+      {rootNode.childIds.map((id, index) => {
+        const currentNode = data[id]
+        const isHeaderRow = index === 0 // the first child in a list is always considered the table header
+        const numberOfColumns = currentNode.data.length + 2 // +2 for actions and row toggle fields
+        const hasChildren = !!currentNode.childIds.length
+        const isChildrenExpanded = hasChildren && expadendRowIds.includes(id)
+        const handleRowToggle = () =>
+          setExpandedRowIds((expandedIds) =>
+            expandedIds.includes(id)
+              ? expandedIds.filter((expandedId) => expandedId !== id)
+              : [id, ...expandedIds],
           )
-        })}
-      </tbody>
+
+        return isHeaderRow ? (
+          <TableHead
+            cells={[
+              TOGGLE_COLUMN_LABEL,
+              ...currentNode.data,
+              ...(hasRowActions ? [rowActions.headerText] : []),
+            ]}
+          />
+        ) : (
+          <tbody>
+            <TableRow
+              key={index}
+              isEven={index % 2 === 0}
+              id={id}
+              parentId={rootNode.id}
+              data={currentNode.data}
+              hasChildren={hasChildren}
+              rowActions={rowActions}
+              isChildrenExpanded={isChildrenExpanded}
+              onToggleChildrenVisible={handleRowToggle}
+            />
+            {isChildrenExpanded && (
+              <tr>
+                <td colSpan={numberOfColumns} className="nestedTable">
+                  <CollapsibleTable
+                    rootNode={currentNode}
+                    data={data}
+                    rowActions={rowActions}
+                  />
+                </td>
+              </tr>
+            )}
+          </tbody>
+        )
+      })}
     </table>
   )
 }
