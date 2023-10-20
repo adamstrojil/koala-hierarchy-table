@@ -24,16 +24,15 @@ export const CollapsibleTable = ({
     <table>
       {rootNode.childIds.map((id, index) => {
         const currentNode = data[id]
-        const randomKey = crypto.randomUUID()
-        const isHeaderRow = index === 0 // the first child in a list is always considered the table header
-        const numberOfColumns = currentNode.data.length + 2 // +2 for actions and row toggle fields
-        const hasChildren = !!currentNode.childIds.length
-        const isChildrenExpanded = hasChildren && expadendRowIds.includes(id)
         const headerCells = [
           TOGGLE_COLUMN_LABEL,
           ...currentNode.data,
           ...(hasRowActions ? [rowActions.headerText] : []),
         ]
+        const isHeaderRow = index === 0 // the first child in a list is always considered the table header
+        const numberOfColumns = headerCells.length
+        const hasChildren = !!currentNode.childIds.length
+        const isChildrenExpanded = hasChildren && expadendRowIds.includes(id)
         const handleRowToggle = () =>
           setExpandedRowIds((expandedIds) =>
             expandedIds.includes(id)
@@ -42,9 +41,9 @@ export const CollapsibleTable = ({
           )
 
         return isHeaderRow ? (
-          <TableHead key={randomKey} cells={headerCells} />
+          <TableHead key={id} cells={headerCells} />
         ) : (
-          <tbody key={randomKey}>
+          <tbody key={id}>
             <TableRow
               id={id}
               parentId={rootNode.id}

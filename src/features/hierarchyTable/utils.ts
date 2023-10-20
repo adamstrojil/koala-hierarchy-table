@@ -16,19 +16,14 @@ export const getDataWithoutRemovedRow = (
   const updatedChildIds = parentNode.childIds.filter((id) => id !== rowId)
   const isOnlyHeaderRowLeft = updatedChildIds.length === 1
 
-  const updatedParentNode = {
-    ...parentNode,
-    childIds: updatedChildIds,
-  }
-
   // If there's only the header left, remove it
   if (isOnlyHeaderRowLeft) {
     const headerRowId = updatedChildIds[0]
     delete data[headerRowId]
-    updatedParentNode.childIds = []
+    parentNode.childIds = []
+  } else {
+    parentNode.childIds = updatedChildIds
   }
-
-  data[parentNodeId] = updatedParentNode
 
   // Remove the child node and all of its childs recursively.
   deleteRowWithAllChildren(data, rowId)
@@ -38,7 +33,6 @@ export const getDataWithoutRemovedRow = (
 
 const deleteRowWithAllChildren = (data: TableFlatData, rowId: RowId) => {
   const rowToDelete = data[rowId]
-
   rowToDelete.childIds.forEach((id) => deleteRowWithAllChildren(data, id))
   delete data[rowId]
 }
